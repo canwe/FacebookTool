@@ -2,6 +2,7 @@
     <wb-module deploy-name="FacebookTool">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/resources"/>
         <property name="java-output-path" value="/FacebookTool/build/classes"/>
         <property name="context-root" value="FacebookTool"/>
     </wb-module>

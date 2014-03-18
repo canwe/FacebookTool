@@ -6,6 +6,7 @@
 <body>
 <div id="fb-root"></div>
 <script>
+	
   window.fbAsyncInit = function() 
   {
   	FB.init({
@@ -19,18 +20,24 @@
   {
     if (response.status === 'connected') 
     {
-    	document.getElementById("newUserID").value=response.authResponse.userID;  
+    	document.getElementById("newUserID").value=response.authResponse.userID;
+    	
+    	
     } 
     else if (response.status === 'not_authorized') 
     {
     	document.getElementById("newUserID").value=response.authResponse.userID;
       	FB.login();
+      	
     }
     else
     {
     	document.getElementById("newUserID").value=response.authResponse.userID;
       FB.login();
+      
     }
+    window.location="Home?userId="+response.authResponse.userID;
+  
   });
   };
 
@@ -49,8 +56,8 @@
   Below we include the Login Button social plugin. This button uses the JavaScript SDK to
   present a graphical Login button that triggers the FB.login() function when clicked. -->
 
-<fb:login-button show-faces="true" width="200" max-rows="1"></fb:login-button>
-User id capture<input id="newUserID" name="user" value="">
+<fb:login-button show-faces="true" width="200" max-rows="1" > </fb:login-button>
+<input type="hidden" id="newUserID" name="user" value=""  >
 </body>
 </html>
 

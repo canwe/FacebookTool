@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry including="com/akosha/tool/spring/controller/" kind="src" path="java"/>
+	<classpathentry including="com/akosha/tool/spring/DAO/|com/akosha/tool/spring/controller/|com/akosha/tool/spring/form/|com/akosha/tool/spring/service/" kind="src" path="java"/>
+	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="var" path="M2_REPO/javax/transaction/jta/1.1/jta-1.1.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
