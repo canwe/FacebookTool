@@ -11,9 +11,8 @@
 	<jsp:forward page="/index" />
 </c:if>
 <body>
-welcome to home page
 <c:forEach items="${brandsList }" var="brand">
-	${brand.brandId }</br>${brand.brandName }</br>
+	${brand.brandName} <a href="getLatestFeed?brandId=${brand.brandId }">Open</a><br>
 </c:forEach>
 </body>
 </html>

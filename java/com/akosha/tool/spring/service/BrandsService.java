@@ -6,6 +6,4 @@ import com.akosha.tool.spring.form.Brands;
 public interface BrandsService 
 {
 	public List<Brands> getBrands();
-	
-
 }

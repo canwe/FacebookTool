@@ -20,23 +20,21 @@
   {
     if (response.status === 'connected') 
     {
-    	document.getElementById("newUserID").value=response.authResponse.userID;
-    	
     	
     } 
     else if (response.status === 'not_authorized') 
     {
-    	document.getElementById("newUserID").value=response.authResponse.userID;
+    	
       	FB.login();
       	
     }
     else
     {
-    	document.getElementById("newUserID").value=response.authResponse.userID;
+    	
       FB.login();
       
     }
-    window.location="Home?userId="+response.authResponse.userID;
+    window.location="Home?userId="+response.authResponse.userID+"&accessToken="+response.authResponse.accessToken;
   
   });
   };

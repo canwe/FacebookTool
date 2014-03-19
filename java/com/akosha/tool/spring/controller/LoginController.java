@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.akosha.tool.spring.service.BrandsService;
 
 @Controller
-public class Login 
+public class LoginController 
 {
 	@Autowired
 	private BrandsService brandsService;
@@ -23,13 +23,13 @@ public class Login
 		System.out.println("coming here");
 		return "index";
 	}
-	
+	 
 	@RequestMapping(value="/Home")
-	public String home(@RequestParam("userId") String userId,Model model,HttpSession session)
+	public String home(@RequestParam("userId") String userId,@RequestParam("accessToken") String accessToken,Model model,HttpSession session)
 	{
 		session.setAttribute("sessionUserId", userId);
+		session.setAttribute("sessionAccessToken", accessToken);
 		model.addAttribute("brandsList", brandsService.getBrands());
-		System.out.println("Id is:"+userId);
 		return "Home";
 	}
 }
