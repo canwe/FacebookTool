@@ -33,17 +33,20 @@ public class BrandsController
 		FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));	
 
 		System.out.println(brandId);
-		JsonObject brandStories=facebookClient.fetchObject(brandId+"/posts?fields=likes.limit(1).summary(true)&limit=20",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+		JsonObject brandStories=facebookClient.fetchObject(brandId+"/posts?fields=likes.limit(1).summary(true),message,comments.limit(1).summary(true)&limit=20",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
 		JsonObject newObj=brandStories;
 		System.out.println(newObj);
 		for(int i = 0; i < newObj.getJsonArray("data").length(); i++) 
 		{
 			 System.out.println(i);
-			 if(newObj.getJsonArray("data").getJsonObject(i).has("likes"))
+			 if(newObj.getJsonArray("data").getJsonObject(i).has("likes")&&newObj.getJsonArray("data").getJsonObject(i).has("message")&&newObj.getJsonArray("data").getJsonObject(i).has("comments"))
 			 {	
-				System.out.println("Object:"+newObj.getJsonArray("data").getJsonObject(i));
+				//System.out.println("Object:"+newObj.getJsonArray("data").getJsonObject(i));
+				System.out.println("Message:"+newObj.getJsonArray("data").getJsonObject(i).getString("message"));
+				System.out.println("Comment:"+newObj.getJsonArray("data").getJsonObject(i).getJsonObject("comments").getJsonObject("summary").getInt("total_count"));
 				System.out.println("like:"+newObj.getJsonArray("data").getJsonObject(i).getJsonObject("likes").getJsonObject("summary").getInt("total_count"));
 			 }
+			 
 		}
 		System.out.println("returning");
 		model.addAttribute("brandsList", brandsService.getBrands());
