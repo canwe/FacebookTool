@@ -6,7 +6,7 @@
 <hibernate-configuration>
     <session-factory>
         <mapping class="com.akosha.tool.spring.form.Brands" />
-        
+        <mapping class="com.akosha.tool.spring.form.BrandStory" />
     </session-factory>
 	    
 </hibernate-configuration>
