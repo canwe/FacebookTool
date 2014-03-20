@@ -12,7 +12,9 @@
 </c:if>
 <body>
 <c:forEach items="${brandsList }" var="brand">
-	${brand.brandName} <a href="getLatestFeed?brandId=${brand.brandId }&page=10">Open</a><br>
+	${brand.brandName} <a href="getLatestFeed?brandId=${brand.brandId }">Open</a><br>
 </c:forEach>
+
+
 </body>
 </html>

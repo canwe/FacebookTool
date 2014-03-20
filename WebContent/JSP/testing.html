@@ -1,11 +1,33 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
-</head>
-<body>
-Pic here
-<img src="https://fbcdn-sphotos-d-a.akamaihd.net/hphotos-ak-ash4/t1.0-9/p320x320/1390776_661718963876743_645736713_n.jpg">
+<body onload="loadPosts()">
+  <div id="fb-root"></div>
+  <script>
+    var graphURL = "https://graph.facebook.com/samsungmobile/posts?" +
+                     "callback=processResult&limit=5";
+
+    // Use JSONP to call the Graph API
+    function loadPosts() {
+      var script = document.createElement("script");
+      script.src = graphURL;
+      document.body.appendChild(script);
+    }
+
+    function processResult(posts) {
+      if (posts.paging == undefined) {
+        document.getElementById("loadMore").innerHTML =
+          "No more results";
+      }
+      else {
+        graphURL = posts.paging.next;
+        for (var post in posts.data) {
+          var message = document.createElement("div");
+          message.innerHTML = posts.data[post].message;
+          document.getElementById("content").appendChild(message);
+        }
+      }
+    }
+  </script>
+  <div id="content"></div>
+  <button id="loadMore" onclick="loadPosts()">Load more</button>
 </body>
 </html>

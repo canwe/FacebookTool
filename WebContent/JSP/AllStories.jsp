@@ -21,5 +21,9 @@
 			
 		</c:forEach>
 	</table>
+	<a href="loadMoreStories?brandId=${brandId }&nextLinkIndex=${nextLinkIndex }">Next</a><br>
+	<a href="loadMoreStories?brandId=${brandId }&previousLinkIndex=${previousLinkIndex }">Previous</a>
+	Next: ${nextLinkIndex }</br>
+Previous: ${previousLinkIndex }</br>
 </body>
 </html>
