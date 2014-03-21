@@ -84,47 +84,7 @@ public class BrandsController
 		List<BrandStory> brandStoryList=new ArrayList<BrandStory>();
 		List<BrandStory> tempList=null;
 		JsonObject brandStories=facebookClient.fetchObject(brandId+"/posts?fields=likes.limit(1).summary(true),picture,link,from,source,object_id,message,comments.limit(1).summary(true)&limit=10",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
-		
-		for(int i = 0; i < brandStories.getJsonArray("data").length(); i++) 
-		{
-			 if(brandStories.getJsonArray("data").getJsonObject(i).has("likes")&&brandStories.getJsonArray("data").getJsonObject(i).has("message")&&brandStories.getJsonArray("data").getJsonObject(i).has("comments"))
-			 {	
-				brandStory=new BrandStory();
-				brandStory.setBrandId(brandId);
-				brandStory.setStoryId(brandStories.getJsonArray("data").getJsonObject(i).getString("id"));
-				brandStory.setCommentCount(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("comments").getJsonObject("summary").getInt("total_count"));
-				brandStory.setLikeCount(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("likes").getJsonObject("summary").getInt("total_count"));
-				brandStory.setMessage(brandStories.getJsonArray("data").getJsonObject(i).getString("message"));
-				if(brandStories.getJsonArray("data").getJsonObject(i).has("from"))
-				{
-					brandStory.setPostedByUserId(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id"));
-				}
-				if(brandStories.getJsonArray("data").getJsonObject(i).has("object_id"))
-				{
-					JsonObject picObject=facebookClient.fetchObject(brandStories.getJsonArray("data").getJsonObject(i).getString("object_id")+"?fields=images&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
-					brandStory.setPicLink(picObject.getJsonArray("images").getJsonObject(5).getString("source"));
-				}
-				if(brandStories.getJsonArray("data").getJsonObject(i).has("source"))
-				{
-					brandStory.setVideoLink(brandStories.getJsonArray("data").getJsonObject(i).getString("source").replace("autoplay=1", "autoplay=0"));
-				}
-				tempList=brandsStoryService.getBrandStory(brandStory.getStoryId());
-				if(tempList.size()!=0)
-				{
-					if(tempList.get(0).getLikeCount()!=brandStory.getLikeCount()||tempList.get(0).getCommentCount()!=brandStory.getCommentCount())
-					{
-						brandsStoryService.update(brandStory);
-					}
-				}
-				else
-				{
-					brandsStoryService.save(brandStory);
-				}
-				
-				brandStoryList.add(brandStory);
-			 }
-			 
-		}
+		loadAndSaveStories(brandStories, brandId, brandStory, facebookClient, tempList, brandStoryList, model, session);
 		int beginIndex=brandStories.getJsonObject("paging").getString("next").indexOf("until=")+6;
 		model.addAttribute("nextLinkIndex", brandStories.getJsonObject("paging").getString("next").substring(beginIndex));
 		
@@ -161,46 +121,7 @@ public class BrandsController
 		{
 			return "redirect: getLatestFeed?brandId="+brandId;
 		}
-		for(int i = 0; i < brandStories.getJsonArray("data").length(); i++) 
-		{
-			 if(brandStories.getJsonArray("data").getJsonObject(i).has("likes")&&brandStories.getJsonArray("data").getJsonObject(i).has("message")&&brandStories.getJsonArray("data").getJsonObject(i).has("comments"))
-			 {	
-				brandStory=new BrandStory();
-				brandStory.setBrandId(brandId);
-				brandStory.setStoryId(brandStories.getJsonArray("data").getJsonObject(i).getString("id"));
-				brandStory.setCommentCount(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("comments").getJsonObject("summary").getInt("total_count"));
-				brandStory.setLikeCount(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("likes").getJsonObject("summary").getInt("total_count"));
-				brandStory.setMessage(brandStories.getJsonArray("data").getJsonObject(i).getString("message"));
-				if(brandStories.getJsonArray("data").getJsonObject(i).has("from"))
-				{
-					brandStory.setPostedByUserId(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id"));
-				}
-				if(brandStories.getJsonArray("data").getJsonObject(i).has("object_id"))
-				{
-					JsonObject picObject=facebookClient.fetchObject(brandStories.getJsonArray("data").getJsonObject(i).getString("object_id")+"?fields=images&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
-					brandStory.setPicLink(picObject.getJsonArray("images").getJsonObject(5).getString("source"));
-				}
-				if(brandStories.getJsonArray("data").getJsonObject(i).has("source"))
-				{
-					brandStory.setVideoLink(brandStories.getJsonArray("data").getJsonObject(i).getString("source").replace("autoplay=1", "autoplay=0"));
-				}
-				tempList=brandsStoryService.getBrandStory(brandStory.getStoryId());
-				if(tempList.size()!=0)
-				{
-					if(tempList.get(0).getLikeCount()!=brandStory.getLikeCount()||tempList.get(0).getCommentCount()!=brandStory.getCommentCount())
-					{
-						brandsStoryService.update(brandStory);
-					}
-				}
-				else
-				{
-					brandsStoryService.save(brandStory);
-				}
-				
-				brandStoryList.add(brandStory);
-			 }
-			 
-		}
+		loadAndSaveStories(brandStories, brandId, brandStory, facebookClient, tempList, brandStoryList, model, session);
 		
 		int beginIndex=brandStories.getJsonObject("paging").getString("next").indexOf("until=")+6;
 		model.addAttribute("nextLinkIndex", brandStories.getJsonObject("paging").getString("next").substring(beginIndex));
@@ -219,5 +140,16 @@ public class BrandsController
 		model.addAttribute("brandStoryList", brandStoryList);
 		
 		return "AllStories";
+	}
+	
+	@RequestMapping(value="viewStory")
+	public String viewStory(@RequestParam("brandId") String brandId,Model model,HttpSession session)
+	{
+		FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
+		
+		JsonObject storyDetails=facebookClient.fetchObject("114219621960016_661719213876718?fields=comments.limit(5).fields(message,comments.limit(5))&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
+		
+		
+		return null;
 	}
 }

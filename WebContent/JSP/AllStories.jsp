@@ -17,13 +17,12 @@
 			<c:if test="${brand.videoLink !=null}">
 				<tr><td><iframe width="300" height="200" src="${brand.videoLink}" frameborder="0"  ></iframe></td></tr>
 			</c:if>
-			<tr><td>Like:${brand.likeCount }&nbsp;|&nbsp;Comment:${brand.commentCount }</td></tr>
-			
+			<tr><td>Like:${brand.likeCount }&nbsp;|&nbsp;Comment:${brand.commentCount }&nbsp;|&nbsp;</td></tr>
+			<tr><td><a href="viewStory?brandId=${brandId }&storyId=${brand.storyId }" >View</a></td></tr>
 		</c:forEach>
 	</table>
 	<a href="loadMoreStories?brandId=${brandId }&nextLinkIndex=${nextLinkIndex }">Next</a><br>
 	<a href="loadMoreStories?brandId=${brandId }&previousLinkIndex=${previousLinkIndex }">Previous</a>
-	Next: ${nextLinkIndex }</br>
-Previous: ${previousLinkIndex }</br>
+	
 </body>
 </html>

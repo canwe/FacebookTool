@@ -1,9 +1,12 @@
 package com.akosha.tool.spring.form;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name="BrandStory")
@@ -33,6 +36,17 @@ public class BrandStory
 	
 	@Column(name="videoLink",nullable=true)
 	private String videoLink;
+
+	@Transient
+	private List<Comment> commentDetails;
+	
+	public List<Comment> getCommentDetails() {
+		return commentDetails;
+	}
+
+	public void setCommentDetails(List<Comment> commentDetails) {
+		this.commentDetails = commentDetails;
+	}
 
 	public String getStoryId() {
 		return storyId;
