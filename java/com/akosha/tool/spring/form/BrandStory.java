@@ -40,6 +40,17 @@ public class BrandStory
 	@Transient
 	private List<Comment> commentDetails;
 	
+	@Transient
+	private List<User> user;
+	
+	public List<User> getUser() {
+		return user;
+	}
+
+	public void setUser(List<User> user) {
+		this.user = user;
+	}
+
 	public List<Comment> getCommentDetails() {
 		return commentDetails;
 	}

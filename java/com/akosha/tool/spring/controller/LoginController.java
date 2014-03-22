@@ -20,7 +20,6 @@ public class LoginController
 	@RequestMapping(value="/index")
 	public String index()
 	{
-		System.out.println("coming here");
 		return "index";
 	}
 	 

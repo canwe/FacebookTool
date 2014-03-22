@@ -18,14 +18,30 @@ public class Comment
 	
 	private int likeCount;
 	
-	private String commentUserId;
-	
-	private String userPictureLink;
-	
 	private Date commentPostedDate;
 
 	private List<Comment> subComment;
 	
+	private User User;
+	
+	private String more;
+	
+	public String getMore() {
+		return more;
+	}
+
+	public void setMore(String more) {
+		this.more = more;
+	}
+
+	public User getUser() {
+		return User;
+	}
+
+	public void setUser(User user) {
+		User = user;
+	}
+
 	public List<Comment> getSubComment() {
 		return subComment;
 	}
@@ -74,23 +90,7 @@ public class Comment
 		this.likeCount = likeCount;
 	}
 
-	public String getCommentUserId() {
-		return commentUserId;
-	}
-
-	public void setCommentUserId(String commentUserId) {
-		this.commentUserId = commentUserId;
-	}
-
-	public String getUserPictureLink() {
-		return userPictureLink;
-	}
-
-	public void setUserPictureLink(String userPictureLink) {
-		this.userPictureLink = userPictureLink;
-	}
-
-	public Date getCommentPostedDate() {
+		public Date getCommentPostedDate() {
 		return commentPostedDate;
 	}
 

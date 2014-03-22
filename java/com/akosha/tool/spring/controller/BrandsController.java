@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,18 +15,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.akosha.tool.spring.form.BrandStory;
 import com.akosha.tool.spring.form.Comment;
+import com.akosha.tool.spring.form.User;
 import com.akosha.tool.spring.service.BrandStoryService;
 import com.akosha.tool.spring.service.BrandsService;
-import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.FacebookClient;
 import com.restfb.Parameter;
-import com.restfb.json.JsonArray;
 import com.restfb.json.JsonObject;
-import com.restfb.types.Post;
 
 @Controller
 public class BrandsController 
@@ -148,6 +148,7 @@ public class BrandsController
 		}
 		catch(Exception e)
 		{
+			System.out.println(e.getMessage());
 			return "Error";
 		}
 	}
@@ -158,79 +159,84 @@ public class BrandsController
 		try
 		{
 			Comment commentDetails=null;
+			User user =null;
 			List <Comment> mainComment=new ArrayList<Comment>();
 			List<Comment> subComment=null;
-			
+			JsonObject userDetails=null;
 			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
-			JsonObject storyDetails=facebookClient.fetchObject(storyId+"?fields=comments.limit(10).fields(from,message,comments.limit(10).fields(from,like_count,message,created_time),like_count,created_time)&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
+			JsonObject storyDetails=facebookClient.fetchObject(storyId+"?fields=comments.limit(2).fields(from,message,comments.limit(1).fields(from,like_count,message,created_time),like_count,created_time)&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
 			
-			System.out.println("total comments:"+storyDetails.getJsonObject("comments").getJsonArray("data").length());
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
 			String masterId=null;
 			if(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(0).has("comments"))
 			{
 				for(int j=0;j<storyDetails.getJsonObject("comments").getJsonArray("data").length();j++)
 				{
+					user=new User();
+					userDetails=facebookClient.fetchObject(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id")+"?fields=picture,name&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+					user.setUserName(userDetails.get("name").toString());
+					user.setUserPicLink(userDetails.getJsonObject("picture").getJsonObject("data").getString("url"));
 					commentDetails=new Comment();
+					user.getUserId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id"));
 					masterId=storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getString("id");
 					commentDetails.setCommentId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getString("id"));
 					commentDetails.setCommentPostedDate(sdf.parse(storyDetails.get("created_time").toString().substring(0,10)));
-					commentDetails.setCommentUserId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id"));
 					commentDetails.setLikeCount(Integer.parseInt(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).get("like_count").toString()));
 					commentDetails.setMessage(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getString("message").toString());
 					commentDetails.setPostId(storyId);
 					commentDetails.setSubPostId(storyId);
-					
-					//System.out.println(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("from").get("name")+"->"+storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getString("message"));
-					//System.out.print("Like: "+storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).get("like_count"));
-					//System.out.println(" | Posted: "+storyDetails.get("created_time").toString().substring(0,10));
+					commentDetails.setUser(user);
 					Comment tempComment=null;
 					subComment=new ArrayList<Comment>();
-					
+					User subUser=null;
 					for(int i=0;i<storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").length();i++)
 					{
 						tempComment=new Comment();
+						subUser=new User();
+						userDetails=facebookClient.fetchObject(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id")+"?fields=picture,name&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+						subUser.setUserName(userDetails.getString("name"));
+						subUser.setUserPicLink(userDetails.getJsonObject("picture").getJsonObject("data").getString("url"));
+						
 						tempComment.setCommentId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("id").toString());
 						tempComment.setCommentPostedDate(sdf.parse(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("created_time").toString().substring(0,10)));
-						tempComment.setCommentUserId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id"));
 						tempComment.setLikeCount(Integer.parseInt(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("like_count").toString()));
 						tempComment.setMessage(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("message").toString());
 						tempComment.setPostId(storyId);
 						tempComment.setSubPostId(masterId);
-						//System.out.println("|");
-						//System.out.print("|-->");
-						//System.out.println(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).getJsonObject("from").get("name")+"->"+storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("message"));
-						//System.out.print("Like: "+storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("like_count"));
-						//System.out.println(" | Posted: "+storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("created_time").toString().substring(0,10));
-						subComment.add(tempComment);
+						tempComment.setUser(subUser);
 						
+						if(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").has("after"))
+						{
+							tempComment.setMore(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
+						
+						}
+						subComment.add(tempComment);
 					}
 					commentDetails.setSubComment(subComment);
 					mainComment.add(commentDetails);	
 				}
-				
-				
-				
-				
 			}
 			
-			System.out.println(mainComment.size());
-			for(int i=0;i<mainComment.size();i++)
-			{
-				System.out.println("======================================================================");
-				System.out.println("Main comment:"+mainComment.get(i).getCommentUserId()+"->"+mainComment.get(i).getMessage());
-				for(int j=0;j<mainComment.get(i).getSubComment().size();j++)
-				{
-					System.out.println("\t "+mainComment.get(i).getSubComment().get(j).getCommentUserId()+"->"+mainComment.get(i).getSubComment().get(j).getMessage());
-				}
-				
-			}
-					return "AllStories";
+			model.addAttribute("storyDetails", mainComment);
+			model.addAttribute("next", storyDetails.getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
+			model.addAttribute("previous", storyDetails.getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("before"));
+			model.addAttribute("message", brandsStoryService.getBrandStory(storyId).get(0).getMessage());
+			return "ViewStory";
 		}
 		catch(Exception e)
 		{
 			System.out.println(e.getMessage());
+			e.printStackTrace();
 			return "Error";
 		}
 	}
+	
+	@RequestMapping(value="loadMoreComments")
+	public @ResponseBody String loadMoreComments(Model model,HttpServletRequest request,HttpSession session)
+	{
+		System.out.println("coming to controller part with value");
+		return "coming here";
+	}
+	
+	
 }
