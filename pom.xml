@@ -7,7 +7,7 @@
 	<artifactId>FacebookTool</artifactId>
 	<packaging>war</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>YummyFoods Maven Webapp</name>
+	<name>FacebookTool Maven Webapp</name>
 	<url>http://maven.apache.org</url>
  
 	<properties>
@@ -91,26 +91,6 @@
 			<version>1.2</version>
 		</dependency>
         
-        <dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>1.18</version>
-		</dependency>
-    	<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-bundle</artifactId>
-			<version>1.18</version>
-		</dependency>
-        <dependency>
-			<groupId>org.codehaus.jackson</groupId>
-			<artifactId>jackson-mapper-asl</artifactId>
-			<version>1.9.13</version>
-		</dependency>
         <dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
