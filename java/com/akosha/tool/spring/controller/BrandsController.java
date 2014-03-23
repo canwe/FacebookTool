@@ -166,7 +166,7 @@ public class BrandsController
 			List<Comment> subComment=null;
 			JsonObject userDetails=null;
 			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
-			JsonObject storyDetails=facebookClient.fetchObject(storyId+"?fields=comments.limit(3).fields(from,message,comments.limit(3).fields(from,like_count,message,created_time),like_count,created_time)&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
+			JsonObject storyDetails=facebookClient.fetchObject(storyId+"?fields=comments.limit(3).fields(from,message,comments.limit(1).fields(from,like_count,message,created_time),like_count,created_time)&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
 			String masterId=null;
@@ -207,20 +207,23 @@ public class BrandsController
 						tempComment.setSubPostId(masterId);
 						tempComment.setUser(subUser);
 						
-						if(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").has("after"))
+				/*		if(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").has("after"))
 						{
 							tempComment.setMore(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
 						
 						}
+					*/	
 						subComment.add(tempComment);
 					}
 					commentDetails.setSubComment(subComment);
+					commentDetails.setMore(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
 					mainComment.add(commentDetails);	
 				}
 			}
 			model.addAttribute("storyDetails", mainComment);
 			model.addAttribute("next", storyDetails.getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
 			model.addAttribute("previous", storyDetails.getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("before"));
+			model.addAttribute("storyId", storyId);
 			model.addAttribute("message", brandsStoryService.getBrandStory(storyId).get(0).getMessage());
 			return "ViewStory";
 		}
@@ -238,20 +241,16 @@ public class BrandsController
 		List<Comment> subComment=new ArrayList<Comment>();
 		try
 		{
-			System.out.println("comming to controller part to load more comments");
-			
 			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
 			String masterCommentId=request.getParameter("masterPostId");
 			String more=request.getParameter("more");
-			System.out.println(more+","+masterCommentId);
 			Comment tempComment=null;
 			User subUser=null;
 			JsonObject userDetails=null;
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
 			
-			JsonObject moreCommentDetails=facebookClient.fetchObject(masterCommentId+"/comments?limit=3&fields=from,like_count,message,created_time&after="+more+"&", JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
-			System.out.println(moreCommentDetails);
+			JsonObject moreCommentDetails=facebookClient.fetchObject(masterCommentId+"/comments?fields=from,like_count,message,created_time&after="+more+"&", JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
 			for(int i=0;i<moreCommentDetails.getJsonArray("data").length();i++)
 			{
 				tempComment=new Comment();
@@ -271,8 +270,7 @@ public class BrandsController
 				}
 				subComment.add(tempComment);
 			}
-			System.out.println(subComment.get(0).getMessage());
-			System.out.println("coming to controller part with value");
+			
 		}
 		catch(Exception e)
 		{
@@ -282,4 +280,77 @@ public class BrandsController
 		return subComment;
 	}
 	
-}
+	@RequestMapping(value="viewStoryPagination")
+	public String viewStoryPagination(@RequestParam(value="storyId",required=true)String storyId,@RequestParam(value="next",required=false)String next,@RequestParam(value="previous",required=false)String previous,Model model, HttpSession session) 
+	{
+		try
+		{
+			Comment commentDetails=null;
+			User user =null;
+			List <Comment> mainComment=new ArrayList<Comment>();
+			List<Comment> subComment=null;
+			JsonObject userDetails=null;
+			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
+			JsonObject storyDetails=facebookClient.fetchObject(storyId+"/comments?fields=from,message,comments.limit(1).fields(from,like_count,message,created_time,comments),like_count,created_time&limit=3&after="+next+"&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
+			String masterId=null;
+			if(storyDetails.getJsonArray("data").getJsonObject(0).has("comments"))
+			{
+				for(int j=0;j<storyDetails.getJsonArray("data").length();j++)
+				{
+					user=new User();
+					commentDetails=new Comment();
+					userDetails=facebookClient.fetchObject(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id")+"?fields=picture,name&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+					user.setUserName(userDetails.get("name").toString());
+					user.setUserPicLink(userDetails.getJsonObject("picture").getJsonObject("data").getString("url"));
+					user.getUserId(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id"));
+					masterId=storyDetails.getJsonArray("data").getJsonObject(j).getString("id");
+					commentDetails.setCommentId(storyDetails.getJsonArray("data").getJsonObject(j).getString("id"));
+					commentDetails.setCommentPostedDate(sdf.parse(storyDetails.getJsonArray("data").getJsonObject(0).get("created_time").toString().substring(0,10)));
+					commentDetails.setLikeCount(Integer.parseInt(storyDetails.getJsonArray("data").getJsonObject(j).get("like_count").toString()));
+					commentDetails.setMessage(storyDetails.getJsonArray("data").getJsonObject(j).getString("message").toString());
+					commentDetails.setPostId(storyId);
+					commentDetails.setSubPostId(storyId);
+					commentDetails.setUser(user);
+					Comment tempComment=null;
+					subComment=new ArrayList<Comment>();
+					User subUser=null;
+					for(int i=0;i<storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").length();i++)
+					{
+						tempComment=new Comment();
+						subUser=new User();
+						userDetails=facebookClient.fetchObject(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id")+"?fields=picture,name&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+						subUser.setUserName(userDetails.getString("name"));
+						subUser.setUserPicLink(userDetails.getJsonObject("picture").getJsonObject("data").getString("url"));
+						
+						tempComment.setCommentId(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("id").toString());
+						tempComment.setCommentPostedDate(sdf.parse(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("created_time").toString().substring(0,10)));
+						tempComment.setLikeCount(Integer.parseInt(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("like_count").toString()));
+						tempComment.setMessage(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonArray("data").getJsonObject(i).get("message").toString());
+						tempComment.setPostId(storyId);
+						tempComment.setSubPostId(masterId);
+						tempComment.setUser(subUser);
+						subComment.add(tempComment);
+					}
+					commentDetails.setSubComment(subComment);
+					commentDetails.setMore(storyDetails.getJsonArray("data").getJsonObject(j).getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
+					mainComment.add(commentDetails);	
+				}
+			}
+			model.addAttribute("storyDetails", mainComment);
+			model.addAttribute("next", storyDetails.getJsonObject("paging").getJsonObject("cursors").getString("after"));
+			model.addAttribute("previous", storyDetails.getJsonObject("paging").getJsonObject("cursors").getString("before"));
+			model.addAttribute("storyId", storyId);
+			model.addAttribute("message", brandsStoryService.getBrandStory(storyId).get(0).getMessage());
+			return "ViewStory";
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			return "Error";
+		}
+	}
+	
+	}
+

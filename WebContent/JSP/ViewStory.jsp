@@ -5,28 +5,29 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<script type="text/javascript"
-    src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/javascript"   src="http://code.jquery.com/jquery-1.10.1.min.js" ></script>
 
 <script type="text/javascript">
     function loadMoreComments(more,masterPostId)
     {
     	try
     	{
-    		alert("sending to requets");
     	$.ajax
    	 ({
    			url: 'loadMoreComments?more='+more+'&masterPostId='+masterPostId,
    	    	type: "GET",
 			   	success: function(data)
    	    	{
-   	    		alert("got user from controller");
+   	    		alert("loading data");
+   	    		var respContent="";
+   	    		$("."+masterPostId).empty();
    	    		for ( var i = 0, len = data.length; i < len; ++i) 
    	    		{
-   	    	            alert(data[i].message);
+   	    			respContent +="&nbsp;&nbsp;<img src="+data[i].user.userPicLink+" />"+data[i].message+"<br>"+data[i].user.userName+"<br>";
+   					 
    	    	    }
-   	    	
-   	    		//var respContent = "";
+   	    		$("#"+masterPostId).html(respContent);
+   	    		
 
    			//respContent += "<span class="success">Smartphone was created: [";
    			//respContent += smartphone.producer + " : ";
@@ -48,7 +49,6 @@
 <title>View</title>
 </head>
 	<body>
-		<a href="#" onClick="ajaxTest()">Click</a>
 		${message }
 		
 		<br>
@@ -59,12 +59,16 @@
 			
 				&nbsp;&nbsp;<img src="${subComment.user.userPicLink }" /> ${subComment.message }<br>
 				 ${subComment.user.userName }<br>
-				 
-				<a href="#" onClick="loadMoreComments('<c:out value='${subComment.more}' />','<c:out value='${subComment.subPostId}' />');" >More</a>	<br>
+				
 				
 			</c:forEach>
-			======================================================================================================================
+			 
+			 <div id=${story.commentId }>
+				<a href="#" onClick="loadMoreComments('<c:out value='${story.more}' />','<c:out value='${story.commentId}' />');" >More</a>	<br>
+			</div>
+			======================================================================================================================<br>
 		</c:forEach>
-		-------------Previous token: ${previous } | ---------------Next Token : ${next} -------<br>
+	<a href="viewStoryPagination?storyId=${storyId }&next=${next}">Next</a><br>
+	<a href="viewStoryPagination?storyId=${storyId }&previous=${previous }">Previous</a>
 	</body>
 </html>
