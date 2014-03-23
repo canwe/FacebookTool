@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -164,7 +166,7 @@ public class BrandsController
 			List<Comment> subComment=null;
 			JsonObject userDetails=null;
 			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
-			JsonObject storyDetails=facebookClient.fetchObject(storyId+"?fields=comments.limit(2).fields(from,message,comments.limit(1).fields(from,like_count,message,created_time),like_count,created_time)&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
+			JsonObject storyDetails=facebookClient.fetchObject(storyId+"?fields=comments.limit(3).fields(from,message,comments.limit(3).fields(from,like_count,message,created_time),like_count,created_time)&",JsonObject.class,Parameter.with("qaccess_token",(String)session.getAttribute("sessionAccessToken")));
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
 			String masterId=null;
@@ -173,10 +175,10 @@ public class BrandsController
 				for(int j=0;j<storyDetails.getJsonObject("comments").getJsonArray("data").length();j++)
 				{
 					user=new User();
+					commentDetails=new Comment();
 					userDetails=facebookClient.fetchObject(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id")+"?fields=picture,name&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
 					user.setUserName(userDetails.get("name").toString());
 					user.setUserPicLink(userDetails.getJsonObject("picture").getJsonObject("data").getString("url"));
-					commentDetails=new Comment();
 					user.getUserId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getJsonObject("from").getString("id"));
 					masterId=storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getString("id");
 					commentDetails.setCommentId(storyDetails.getJsonObject("comments").getJsonArray("data").getJsonObject(j).getString("id"));
@@ -216,7 +218,6 @@ public class BrandsController
 					mainComment.add(commentDetails);	
 				}
 			}
-			
 			model.addAttribute("storyDetails", mainComment);
 			model.addAttribute("next", storyDetails.getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("after"));
 			model.addAttribute("previous", storyDetails.getJsonObject("comments").getJsonObject("paging").getJsonObject("cursors").getString("before"));
@@ -231,12 +232,54 @@ public class BrandsController
 		}
 	}
 	
-	@RequestMapping(value="loadMoreComments")
-	public @ResponseBody String loadMoreComments(Model model,HttpServletRequest request,HttpSession session)
+	@RequestMapping(value="/loadMoreComments")
+	public @ResponseBody List<Comment> loadMoreComments(Model model,HttpServletRequest request,HttpSession session)
 	{
-		System.out.println("coming to controller part with value");
-		return "coming here";
+		List<Comment> subComment=new ArrayList<Comment>();
+		try
+		{
+			System.out.println("comming to controller part to load more comments");
+			
+			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
+			String masterCommentId=request.getParameter("masterPostId");
+			String more=request.getParameter("more");
+			System.out.println(more+","+masterCommentId);
+			Comment tempComment=null;
+			User subUser=null;
+			JsonObject userDetails=null;
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
+			
+			JsonObject moreCommentDetails=facebookClient.fetchObject(masterCommentId+"/comments?limit=3&fields=from,like_count,message,created_time&after="+more+"&", JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+			System.out.println(moreCommentDetails);
+			for(int i=0;i<moreCommentDetails.getJsonArray("data").length();i++)
+			{
+				tempComment=new Comment();
+				subUser=new User();
+				userDetails=facebookClient.fetchObject(moreCommentDetails.getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id")+"?fields=picture,name&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+				subUser.setUserName(userDetails.getString("name"));
+				subUser.setUserPicLink(userDetails.getJsonObject("picture").getJsonObject("data").getString("url"));
+				tempComment.setCommentId(moreCommentDetails.getJsonArray("data").getJsonObject(i).get("id").toString());
+				tempComment.setCommentPostedDate(sdf.parse(moreCommentDetails.getJsonArray("data").getJsonObject(i).get("created_time").toString().substring(0,10)));
+				tempComment.setLikeCount(Integer.parseInt(moreCommentDetails.getJsonArray("data").getJsonObject(i).get("like_count").toString()));
+				tempComment.setMessage(moreCommentDetails.getJsonArray("data").getJsonObject(i).get("message").toString());
+				tempComment.setSubPostId(masterCommentId);
+				tempComment.setUser(subUser);
+				if(moreCommentDetails.getJsonObject("paging").has("after"))
+				{
+					tempComment.setMore(moreCommentDetails.getJsonObject("paging").getString("after"));
+				}
+				subComment.add(tempComment);
+			}
+			System.out.println(subComment.get(0).getMessage());
+			System.out.println("coming to controller part with value");
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		return subComment;
 	}
-	
 	
 }
