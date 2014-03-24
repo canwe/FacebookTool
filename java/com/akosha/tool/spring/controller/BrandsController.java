@@ -1,5 +1,6 @@
 package com.akosha.tool.spring.controller;
 
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.ResourceBundle;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.tags.ParamAware;
 
 import com.akosha.tool.spring.form.BrandStory;
+import com.akosha.tool.spring.form.Brands;
 import com.akosha.tool.spring.form.Comment;
 import com.akosha.tool.spring.form.User;
 import com.akosha.tool.spring.service.BrandStoryService;
@@ -397,6 +401,82 @@ public class BrandsController
 		}
 	
 		return "redirect:/viewStory?storyId="+request.getParameter("storyId");
+		
+	}
+	
+	
+	@RequestMapping(value="searchBrand")
+	public String searchBrand(@ModelAttribute("brand") Brands brand,Model model,HttpServletRequest request,HttpSession session)
+	{
+		try
+		{
+			String searchParam=request.getParameter("searchParam");
+			List <Brands> searchBrandList=null;
+			FacebookClient facebookClient= null;
+			if(searchParam!=null && searchParam.equals("New"))
+			{
+				
+				facebookClient=new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
+				JsonObject brandDetails=facebookClient.fetchObject("search?fields=likes,name,picture,about&q="+URLEncoder.encode(brand.getBrandName(), "UTF-8")+"&type=page&limit=10&", JsonObject.class	,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+				Brands tempBrands=null;
+				if(brandDetails.has("data"))
+				{
+					searchBrandList=new ArrayList<Brands>();
+					for(int i=0;i<brandDetails.getJsonArray("data").length();i++)
+					{
+						tempBrands=new Brands();
+						tempBrands.setBrandName(brandDetails.getJsonArray("data").getJsonObject(i).getString("name"));
+						tempBrands.setBrandId(brandDetails.getJsonArray("data").getJsonObject(i).getString("id"));
+						tempBrands.setLikes(brandDetails.getJsonArray("data").getJsonObject(i).getInt("likes"));
+						if(brandDetails.getJsonArray("data").getJsonObject(i).has("about"))
+						{
+							tempBrands.setAbout(brandDetails.getJsonArray("data").getJsonObject(i).getString("about"));
+						}
+						tempBrands.setPictureLink(brandDetails.getJsonArray("data").getJsonObject(i).getJsonObject("picture").getJsonObject("data").getString("url"));
+						searchBrandList.add(tempBrands);
+					}
+					model.addAttribute("searchBrandList", searchBrandList);
+				}
+				else
+				{
+					model.addAttribute("message", "No page found!!");
+				}
+			}
+			else if(searchParam!=null && searchParam.equals("Existing"))
+			{
+				searchBrandList=brandsService.getBrandsByName(brand.getBrandName());
+				model.addAttribute("searchBrandList",searchBrandList);
+			}
+			model.addAttribute("brand",brand);
+			return "Home";
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return "Error";
+		}
+		
+	}
+	
+	@RequestMapping(value="addBrand")
+	public String addBrand(@ModelAttribute("brand") Brands brand,Model model)
+	{
+		try
+		{
+			System.out.println("brand luke:"+brand.getLikes());
+			brandsService.save(brand);
+			model.addAttribute("message", "Brand added..");
+			
+		}
+		catch(Exception e)
+		{
+			model.addAttribute("message", "Brand is already added..");
+			model.addAttribute("brandsList", brandsService.getBrands());
+			
+		}
+		model.addAttribute("brand", new Brands());
+		return "Home";
+		
 		
 	}
 }

@@ -16,6 +16,40 @@ public class Brands
 	@Column(name="brandName",nullable=false)
 	private String brandName;
 
+	@Column(name="likes",nullable=true)
+	private int likes;
+	
+	@Column(name="pictureLink",nullable=true)
+	private String pictureLink;
+	
+	@Column(name="about",nullable=true)
+	private String about;
+	
+	
+	public int getLikes() {
+		return likes;
+	}
+
+	public void setLikes(int likes) {
+		this.likes = likes;
+	}
+
+	public String getPictureLink() {
+		return pictureLink;
+	}
+
+	public void setPictureLink(String pictureLink) {
+		this.pictureLink = pictureLink;
+	}
+
+	public String getAbout() {
+		return about;
+	}
+
+	public void setAbout(String about) {
+		this.about = about;
+	}
+
 	public String getBrandId() {
 		return brandId;
 	}

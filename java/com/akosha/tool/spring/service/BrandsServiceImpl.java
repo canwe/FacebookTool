@@ -23,4 +23,20 @@ public class BrandsServiceImpl implements BrandsService
 		
 	}
 
+	@Override
+	@Transactional
+	public List<Brands> getBrandsByName(String brandName) 
+	{
+	
+		return brandsDAO.getBrandsByName(brandName);
+	}
+
+	@Override
+	@Transactional
+	public void save(Brands Brand) 
+	{
+		brandsDAO.save(Brand);
+		
+	}
+
 }

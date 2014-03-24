@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.akosha.tool.spring.form.Brands;
 import com.akosha.tool.spring.service.BrandsService;
 
 @Controller
@@ -29,6 +30,7 @@ public class LoginController
 		session.setAttribute("sessionUserId", userId);
 		session.setAttribute("sessionAccessToken", accessToken);
 		model.addAttribute("brandsList", brandsService.getBrands());
+		model.addAttribute("brand", new Brands());
 		return "Home";
 	}
 }
