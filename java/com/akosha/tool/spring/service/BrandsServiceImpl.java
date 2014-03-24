@@ -38,5 +38,12 @@ public class BrandsServiceImpl implements BrandsService
 		brandsDAO.save(Brand);
 		
 	}
+	@Transactional
+	@Override
+	public void delete(Brands brand) 
+	{
+	
+		brandsDAO.delete(brand);
+	}
 
 }

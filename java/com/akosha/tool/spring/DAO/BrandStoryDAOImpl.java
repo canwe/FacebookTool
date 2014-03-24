@@ -5,8 +5,10 @@ import java.util.List;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.akosha.tool.spring.form.BrandStory;
+import com.akosha.tool.spring.form.Brands;
 
 @Repository
 public class BrandStoryDAOImpl implements BrandStoryDAO 
@@ -32,5 +34,8 @@ public class BrandStoryDAOImpl implements BrandStoryDAO
 	{
 		sessionFactory.getCurrentSession().update(brandStory);
 	}
+
+	
+	
 
 }

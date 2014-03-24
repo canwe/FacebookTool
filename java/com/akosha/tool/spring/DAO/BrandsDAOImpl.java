@@ -47,6 +47,13 @@ public class BrandsDAOImpl implements BrandsDAO
 		sessionFactory.getCurrentSession().save(Brand);
 		
 	}
+	@Override
+	public void delete(Brands brand)
+	{
+		sessionFactory.getCurrentSession().delete(brand);
+
+		
+	}
 
 
 }

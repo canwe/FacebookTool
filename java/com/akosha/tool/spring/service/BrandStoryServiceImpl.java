@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.akosha.tool.spring.DAO.BrandStoryDAO;
 import com.akosha.tool.spring.form.BrandStory;
+import com.akosha.tool.spring.form.Brands;
 
 
 @Service
@@ -38,6 +39,7 @@ public class BrandStoryServiceImpl implements BrandStoryService {
 		brandStoryDAO.update(brandStory);
 		
 	}
+	
 	
 
 }

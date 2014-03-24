@@ -14,8 +14,7 @@
     	{
     		if((more!="") && (masterPostId!=""))
     		{
-    			alert("values are not null");
-	    		$.ajax
+    			$.ajax
 	   		 	({
 		   			url: 'loadMoreComments?more='+more+'&masterPostId='+masterPostId,
 		   	    	type: "GET",

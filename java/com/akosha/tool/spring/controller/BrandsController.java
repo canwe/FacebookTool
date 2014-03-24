@@ -63,7 +63,7 @@ public class BrandsController
 				if(brandStories.getJsonArray("data").getJsonObject(i).has("object_id"))
 				{
 					JsonObject picObject=facebookClient.fetchObject(brandStories.getJsonArray("data").getJsonObject(i).getString("object_id")+"?fields=images&",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
-					brandStory.setPicLink(picObject.getJsonArray("images").getJsonObject(5).getString("source"));
+					brandStory.setPicLink(picObject.getJsonArray("images").getJsonObject(0).getString("source"));
 				}
 				if(brandStories.getJsonArray("data").getJsonObject(i).has("source"))
 				{
@@ -463,7 +463,6 @@ public class BrandsController
 	{
 		try
 		{
-			System.out.println("brand luke:"+brand.getLikes());
 			brandsService.save(brand);
 			model.addAttribute("message", "Brand added..");
 			
@@ -479,5 +478,15 @@ public class BrandsController
 		
 		
 	}
+	@RequestMapping(value="deleteBrand")
+	public String deleteBrand(@ModelAttribute("brand") Brands brand,Model model)
+	{
+		brandsService.delete(brand);
+		model.addAttribute("message", "Brand deleted..");
+		model.addAttribute("brandsList", brandsService.getBrands());
+		return "Home";
+	}
+	
+	
 }
 
