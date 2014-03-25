@@ -56,6 +56,10 @@ public class BrandsController
 				brandStory.setCommentCount(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("comments").getJsonObject("summary").getInt("total_count"));
 				brandStory.setLikeCount(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("likes").getJsonObject("summary").getInt("total_count"));
 				brandStory.setMessage(brandStories.getJsonArray("data").getJsonObject(i).getString("message"));
+				if(brandStories.getJsonArray("data").getJsonObject(i).has("picture"))
+				{
+					brandStory.setPicLink(brandStories.getJsonArray("data").getJsonObject(i).getString("picture"));
+				}
 				if(brandStories.getJsonArray("data").getJsonObject(i).has("from"))
 				{
 					brandStory.setPostedByUserId(brandStories.getJsonArray("data").getJsonObject(i).getJsonObject("from").getString("id"));
@@ -90,23 +94,36 @@ public class BrandsController
 	@RequestMapping(value="getLatestFeed")
 	public String getLatestFeed(@RequestParam("brandId") String brandId,Model model,HttpSession session)
 	{
-		FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));	
-		BrandStory brandStory=null;
-		List<BrandStory> brandStoryList=new ArrayList<BrandStory>();
-		List<BrandStory> tempList=null;
-		JsonObject brandStories=facebookClient.fetchObject(brandId+"/posts?fields=likes.limit(1).summary(true),picture,link,from,source,object_id,message,comments.limit(1).summary(true)&limit=10",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
-		loadAndSaveStories(brandStories, brandId, brandStory, facebookClient, tempList, brandStoryList, model, session);
-		int beginIndex=brandStories.getJsonObject("paging").getString("next").indexOf("until=")+6;
-		model.addAttribute("nextLinkIndex", brandStories.getJsonObject("paging").getString("next").substring(beginIndex));
-		
-		beginIndex=brandStories.getJsonObject("paging").getString("previous").indexOf("since=")+6;
-		int endIndex=brandStories.getJsonObject("paging").getString("previous").lastIndexOf("&");
-		model.addAttribute("previousLinkIndex", brandStories.getJsonObject("paging").getString("previous").substring(beginIndex,endIndex));
-		
-		model.addAttribute("brandId", brandId);
-		model.addAttribute("brandsList", brandsService.getBrands());
-		model.addAttribute("brandStoryList", brandStoryList);
-		return "AllStories";
+		try
+		{
+			FacebookClient facebookClient= new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));	
+			BrandStory brandStory=null;
+			List<BrandStory> brandStoryList=new ArrayList<BrandStory>();
+			List<BrandStory> tempList=null;
+			JsonObject brandStories=facebookClient.fetchObject(brandId+"/posts?fields=likes.limit(1).summary(true),picture,link,from,source,object_id,message,comments.limit(1).summary(true)&limit=10",JsonObject.class,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+			loadAndSaveStories(brandStories, brandId, brandStory, facebookClient, tempList, brandStoryList, model, session);
+			if(brandStories.has("paging"))
+			{
+				int beginIndex=brandStories.getJsonObject("paging").getString("next").indexOf("until=")+6;
+				model.addAttribute("nextLinkIndex", brandStories.getJsonObject("paging").getString("next").substring(beginIndex));
+				
+				beginIndex=brandStories.getJsonObject("paging").getString("previous").indexOf("since=")+6;
+				int endIndex=brandStories.getJsonObject("paging").getString("previous").lastIndexOf("&");
+				model.addAttribute("previousLinkIndex", brandStories.getJsonObject("paging").getString("previous").substring(beginIndex,endIndex));
+				
+			}
+			
+			model.addAttribute("brandId", brandId);
+			model.addAttribute("brandsList", brandsService.getBrands());
+			model.addAttribute("brandStoryList", brandStoryList);
+			model.addAttribute("brand", new Brands());
+			return "AllStories";
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return "Error";
+		}
 	}
 	
 	@RequestMapping(value="loadMoreStories")
@@ -239,6 +256,7 @@ public class BrandsController
 				model.addAttribute("more",more);
 				model.addAttribute("redirectCommentId",redirectCommentId);
 			}
+			model.addAttribute("brand", new Brands());
 			return "ViewStory";
 		}
 		catch(Exception e)
@@ -376,6 +394,7 @@ public class BrandsController
 			model.addAttribute("storyId", storyId);
 			model.addAttribute("message", brandsStoryService.getBrandStory(storyId).get(0).getMessage());
 			model.addAttribute("comment", new Comment());
+			model.addAttribute("brand", new Brands());
 			return "ViewStory";
 			
 		}
@@ -390,17 +409,25 @@ public class BrandsController
 	@RequestMapping(value="addComment",method=RequestMethod.POST)
 	public String addComment(@ModelAttribute("comment")Comment comment,Model model,HttpSession session,HttpServletRequest request)
 	{
-		FacebookClient facebookClient=new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
-		if(request.getParameter("commentId")==null)
+		try
 		{
-			facebookClient.publish(request.getParameter("storyId")+"/comments", String.class, Parameter.with("message", comment.getMessage()));
+			FacebookClient facebookClient=new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
+			if(request.getParameter("commentId")==null)
+			{
+				facebookClient.publish(request.getParameter("storyId")+"/comments", String.class, Parameter.with("message", comment.getMessage()));
+			}
+			else
+			{
+				facebookClient.publish(request.getParameter("commentId")+"/comments", String.class, Parameter.with("message", comment.getMessage()));
+			}
+		
+			return "redirect:/viewStory?storyId="+request.getParameter("storyId");
 		}
-		else
+		catch(Exception e)
 		{
-			facebookClient.publish(request.getParameter("commentId")+"/comments", String.class, Parameter.with("message", comment.getMessage()));
+			e.printStackTrace();
+			return "Error";
 		}
-	
-		return "redirect:/viewStory?storyId="+request.getParameter("storyId");
 		
 	}
 	
@@ -417,7 +444,7 @@ public class BrandsController
 			{
 				
 				facebookClient=new DefaultFacebookClient((String)session.getAttribute("sessionAccessToken"));
-				JsonObject brandDetails=facebookClient.fetchObject("search?fields=likes,name,picture,about&q="+URLEncoder.encode(brand.getBrandName(), "UTF-8")+"&type=page&limit=10&", JsonObject.class	,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
+				JsonObject brandDetails=facebookClient.fetchObject("search?fields=likes,name,picture.type(large),about&q="+URLEncoder.encode(brand.getBrandName(), "UTF-8")+"&type=page&limit=10&", JsonObject.class	,Parameter.with("qaccess_token", (String)session.getAttribute("sessionAccessToken")));
 				Brands tempBrands=null;
 				if(brandDetails.has("data"))
 				{
@@ -464,15 +491,16 @@ public class BrandsController
 		try
 		{
 			brandsService.save(brand);
+			model.addAttribute("clearBrandId", brand.getBrandId());
 			model.addAttribute("message", "Brand added..");
-			
 		}
 		catch(Exception e)
 		{
 			model.addAttribute("message", "Brand is already added..");
-			model.addAttribute("brandsList", brandsService.getBrands());
+		
 			
 		}
+		model.addAttribute("brandsList", brandsService.getBrands());
 		model.addAttribute("brand", new Brands());
 		return "Home";
 		
@@ -481,10 +509,18 @@ public class BrandsController
 	@RequestMapping(value="deleteBrand")
 	public String deleteBrand(@ModelAttribute("brand") Brands brand,Model model)
 	{
-		brandsService.delete(brand);
-		model.addAttribute("message", "Brand deleted..");
-		model.addAttribute("brandsList", brandsService.getBrands());
-		return "Home";
+		try
+		{
+			brandsService.delete(brand);
+			model.addAttribute("message", "Brand deleted..");
+			model.addAttribute("brandsList", brandsService.getBrands());
+			return "Home";
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return "Error";
+		}
 	}
 	
 	

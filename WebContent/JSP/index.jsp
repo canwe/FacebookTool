@@ -1,10 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head></head>
 <body>
 <div id="fb-root"></div>
+<link rel="stylesheet" type="text/css" href="<c:url value="/resources/css/style.css"/>">
 <script>
 	
   window.fbAsyncInit = function() 
@@ -40,22 +42,46 @@
   };
 
   // Load the SDK asynchronously
-  (function(d){
-   var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-   if (d.getElementById(id)) {return;}
-   js = d.createElement('script'); js.id = id; js.async = true;
-   js.src = "//connect.facebook.net/en_US/all.js";
-   ref.parentNode.insertBefore(js, ref);
-  }(document));
+  (
+		  function(d)
+		  {
+   				var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+   				if (d.getElementById(id))
+   				{
+   					return;
+   				}
+				js = d.createElement('script'); js.id = id; js.async = true;
+				js.src = "//connect.facebook.net/en_US/all.js";
+				ref.parentNode.insertBefore(js, ref);
+		   }
+		  (document));
 
    </script>
 
 <!--
   Below we include the Login Button social plugin. This button uses the JavaScript SDK to
   present a graphical Login button that triggers the FB.login() function when clicked. -->
-
-<fb:login-button autologoutlink="true" show-faces="true" width="200" max-rows="1" > </fb:login-button>
-
+  <div class="header">
+		<div>
+			
+		</div>
+			
+	</div>
+	
+  <div class="body">
+  	<center>
+		<fb:login-button autologoutlink="true" width="200" > </fb:login-button>
+	</center>
+	
+		
+	</div>
+<div class="footer">
+		<div>
+			<p>
+				&copy; Copyright 2014. All rights reserved
+			</p>
+		</div>
+	</div>	
 </body>
 </html>
 
