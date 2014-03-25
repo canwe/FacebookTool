@@ -43,6 +43,47 @@
     }
     
 </script>
+<script>
+	
+  window.fbAsyncInit = function() 
+  {
+  	FB.init({
+    appId      : '476518365803307',
+    status     : true, // check login status
+    cookie     : true, // enable cookies to allow the server to access the session
+    xfbml      : true  // parse XFBML
+  	});
+
+  FB.Event.subscribe('auth.authResponseChange', function(response) 
+  {
+    if (response.status === 'connected') 
+    {
+    	
+    } 
+    else if (response.status === 'not_authorized') 
+    {
+    	
+    	FB.login();
+      	
+    }
+    else
+    {
+   		window.location="index";
+    }
+   
+  });
+  };
+
+  // Load the SDK asynchronously
+  (function(d){
+   var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement('script'); js.id = id; js.async = true;
+   js.src = "//connect.facebook.net/en_US/all.js";
+   ref.parentNode.insertBefore(js, ref);
+  }(document));
+
+   </script>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>View</title>
 </head>
@@ -88,7 +129,6 @@
 								<td>${story.user.userName }</td><td>
 							</tr>
 						</table>
-							<div id=${story.commentId }>
 							<c:forEach items="${story.subComment }" var="subComment" >
 								<table>
 									<tr>
@@ -100,6 +140,8 @@
 									</tr>
 								</table>
 						</c:forEach>
+							<div id=${story.commentId }>
+						
 							<a href="#" onClick="loadMoreComments('<c:out value='${story.more}' />','<c:out value='${story.commentId}' />');" >More</a>
 						</div>
 						<form:form  action="addComment" modelAttribute="comment"  >

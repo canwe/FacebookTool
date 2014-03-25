@@ -18,32 +18,31 @@
     xfbml      : true  // parse XFBML
   	});
 
-  FB.Event.subscribe('auth.authResponseChange', function(response) 
-  {
-    if (response.status === 'connected') 
-    {
-    	
-    } 
-    else if (response.status === 'not_authorized') 
-    {
-    	
-      	FB.login();
-      	
-    }
-    else
-    {
-    	
-      FB.login();
-      
-    }
-    window.location="Home?userId="+response.authResponse.userID+"&accessToken="+response.authResponse.accessToken;
-  
+  	FB.getLoginStatus(function(response) 
+	{
+    	if (response.status === 'connected') 
+      	{
+          // connected
+          window.location="Home?userId="+response.authResponse.userID+"&accessToken="+response.authResponse.accessToken;
+              // what to do with the response
+		// testAPI();
+      	}
+    	else if (response.status === 'not_authorized') 
+    	{
+    	//	alert("not_authorized")
+          
+      	}
+    	else
+    	{
+    	//	alert("Not logged")
+        
+      }
   });
-  };
+
+};
 
   // Load the SDK asynchronously
-  (
-		  function(d)
+  ( function(d)
 		  {
    				var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
    				if (d.getElementById(id))
@@ -57,10 +56,27 @@
 		  (document));
 
    </script>
+   <script type="text/javascript">
+        function loginFacebook() 
+        {
+            FB.login(function(response) 
+            {
+                if (response.authResponse) 
+                {
+                	 window.location="Home?userId="+response.authResponse.userID+"&accessToken="+response.authResponse.accessToken;
+                	//alert("connected");
+                    // connected
+                   
+                } 
+                else 
+                {
+                    // cancelled
+                }
+            },
+            {scope: 'user_about_me,user_birthday,user_interests,user_status,publish_stream'});
+        }
+   </script>
 
-<!--
-  Below we include the Login Button social plugin. This button uses the JavaScript SDK to
-  present a graphical Login button that triggers the FB.login() function when clicked. -->
   <div class="header">
 		<div>
 			
@@ -70,7 +86,7 @@
 	
   <div class="body">
   	<center>
-		<fb:login-button autologoutlink="true" width="200" > </fb:login-button>
+		<a id="fb_login_link" href="" onclick="loginFacebook(); return false;" ><img src="<c:url value="/resources/images/facebook-connect-button.png" />"></a>
 	</center>
 	
 		
